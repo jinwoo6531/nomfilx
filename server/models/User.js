@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs"); //비밀번호를 암호화 해줘서 데이터베이스에 저장해야한다.
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs'); //비밀번호를 암호화 해줘서 데이터베이스에 저장해야한다.
 const saltRounds = 10; // 10자리인 salt를 만들어서 이 salt를 이용해서 비밀번호를 암호화한다.
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 const userSchema = mongoose.Schema({
   name: {
@@ -29,7 +29,7 @@ const userSchema = mongoose.Schema({
   },
   role: {
     type: String,
-    default: "일반회원",
+    default: '일반회원',
   },
 
   movie: {
@@ -53,11 +53,11 @@ const userSchema = mongoose.Schema({
   },
 });
 
-userSchema.pre("save", function (next) {
+userSchema.pre('save', function (next) {
   // pre : mongoose에서 가져옴
   //User -> password를 가져오기 위해
-  var user = this;
-  if (user.isModified("password")) {
+  let user = this;
+  if (user.isModified('password')) {
     //비밀번호를 바꿀때만 암호화를 해줘야 하기 때문에
     //비밀번호 암호화 시킨다
     bcrypt.genSalt(saltRounds, function (err, salt) {
@@ -82,10 +82,10 @@ userSchema.methods.comparePassword = function (plainPassword, cb) {
 };
 
 userSchema.methods.generateToken = function (cb) {
-  var user = this;
+  let user = this;
 
   //jsonwebtoken을 이용해서 token 생성
-  var token = jwt.sign(user._id.toHexString(), "secretToken");
+  let token = jwt.sign(user._id.toHexString(), 'secretToken');
   console.log(token);
   user.token = token;
   user.save(function (err, user) {
@@ -95,10 +95,10 @@ userSchema.methods.generateToken = function (cb) {
 };
 
 userSchema.statics.findByToken = function (token, cb) {
-  var user = this;
+  let user = this;
 
   //토큰을 decode 한다
-  jwt.verify(token, "secretToken", function (err, decoded) {
+  jwt.verify(token, 'secretToken', function (err, decoded) {
     //유저 아이디를 이용해서 유저를 찾은 다음에
     //클라이언트에서 가져온 token과 DB에 보관된 토큰이 일치하는지 확인
     user.findOne({ _id: decoded, token: token }, function (err, user) {
@@ -108,9 +108,9 @@ userSchema.statics.findByToken = function (token, cb) {
   });
 };
 
-userSchema.pre("updateOne", function (next) {
-  let user = this; //arrow function 대신 function을 사용한 이유
-  //password 변경시에만 실행 -다른 정보 수정할 때는 비밀번호를 암호화 하지 않음.
+userSchema.pre('updateOne', function (next) {
+  let user = this;
+  //password 변경시에만 실행 - 다른 정보 수정할 때는 비밀번호를 암호화 하지 않음.
   if (user._update.$set.password) {
     bcrypt.genSalt(saltRounds, function (err, salt) {
       if (err) return next(err);
@@ -125,6 +125,6 @@ userSchema.pre("updateOne", function (next) {
   }
 });
 
-const User = mongoose.model("User", userSchema); //스키마를 감싸주는 역할:model
+const User = mongoose.model('User', userSchema); //스키마를 감싸주는 역할:model
 
 module.exports = { User };
